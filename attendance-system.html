@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Attendance Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#fafbfc; --line:#e2e5ea;
+  --text:#16191d; --muted:#666e7a; --accent:#1f5f8b; --accent-soft:#e8f0f6;
+  --present:#1a7f52; --present-bg:#e4f4ec;
+  --absent:#b3261e; --absent-bg:#fbeae9;
+  --late:#a56a00; --late-bg:#fdf1dc;
+  --radius:10px; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111418; --surface:#1a1e24; --surface-2:#20252c; --line:#2d333c;
+    --text:#e8eaed; --muted:#98a1ad; --accent:#6fb4df; --accent-soft:#1d2c38;
+    --present:#5fd3a0; --present-bg:#14301f;
+    --absent:#f08a83; --absent-bg:#351916;
+    --late:#e5b45f; --late-bg:#33270f;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111418; --surface:#1a1e24; --surface-2:#20252c; --line:#2d333c;
+  --text:#e8eaed; --muted:#98a1ad; --accent:#6fb4df; --accent-soft:#1d2c38;
+  --present:#5fd3a0; --present-bg:#14301f;
+  --absent:#f08a83; --absent-bg:#351916;
+  --late:#e5b45f; --late-bg:#33270f;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.logo{width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+h1{font-size:16px;margin:0;font-weight:600;letter-spacing:-.01em}
+.sub{font-size:12px;color:var(--muted);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:20px}
+nav{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:var(--radius);
+  border:1px solid var(--line);margin-bottom:20px;overflow-x:auto}
+nav button{flex:1;min-width:110px;border:0;background:transparent;color:var(--muted);
+  padding:9px 12px;border-radius:7px;font:inherit;font-weight:500;cursor:pointer;white-space:nowrap}
+nav button:hover{color:var(--text)}
+nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin-bottom:18px}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;
+  align-items:center;gap:12px;flex-wrap:wrap}
+.card-h h2{font-size:14px;margin:0;font-weight:600}
+.card-b{padding:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input,select{font:inherit;color:var(--text);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:8px;padding:8px 11px;min-width:0}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+label.fld{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:500}
+button.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--surface-2);
+  color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.btn.primary:hover{opacity:.9}
+button.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 9px}
+button.btn.ghost:hover{color:var(--absent);background:var(--absent-bg)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+.roll{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;
+  font-weight:500;padding:6px 13px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[data-on="P"]{background:var(--present-bg);color:var(--present);font-weight:600}
+.seg button[data-on="A"]{background:var(--absent-bg);color:var(--absent);font-weight:600}
+.seg button[data-on="L"]{background:var(--late-bg);color:var(--late);font-weight:600}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.pill.g{background:var(--present-bg);color:var(--present)}
+.pill.r{background:var(--absent-bg);color:var(--absent)}
+.pill.y{background:var(--late-bg);color:var(--late)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
+.stat .n{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--present);border-radius:99px}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);font-size:14px}
+.tag{font-size:11px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);
+  padding:2px 8px;border-radius:99px}
+.hide{display:none!important}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--text);color:var(--bg);padding:9px 18px;border-radius:99px;font-size:13px;
+  font-weight:500;opacity:0;transition:.2s;pointer-events:none;z-index:50}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:600px){.wrap{padding:13px}.card-b{padding:14px}th,td{padding:9px 10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">SA</div>
+    <div>
+      <h1>Student Attendance Management System</h1>
+      <p class="sub" id="statusline">Loading…</p>
+    </div>
+  </div>
+  <button class="btn" id="themeBtn" title="Toggle theme">◐</button>
+</header>
+
+<div class="wrap">
+  <nav role="tablist">
+    <button role="tab" data-tab="mark" aria-selected="true">Mark Attendance</button>
+    <button role="tab" data-tab="students" aria-selected="false">Students</button>
+    <button role="tab" data-tab="reports" aria-selected="false">Reports</button>
+    <button role="tab" data-tab="history" aria-selected="false">History</button>
+    <button role="tab" data-tab="classes" aria-selected="false">Classes</button>
+  </nav>
+
+  <!-- MARK -->
+  <section id="tab-mark">
+    <div class="card">
+      <div class="card-h">
+        <h2>Daily Register</h2>
+        <div class="row" style="margin-left:auto">
+          <label class="fld">Class<select id="mkClass"></select></label>
+          <label class="fld">Date<input type="date" id="mkDate"></label>
+        </div>
+      </div>
+      <div class="card-b" id="mkBody"></div>
+    </div>
+  </section>
+
+  <!-- STUDENTS -->
+  <section id="tab-students" class="hide">
+    <div class="card">
+      <div class="card-h">
+        <h2>Student Roster</h2>
+        <label class="fld" style="margin-left:auto">Class<select id="stClass"></select></label>
+      </div>
+      <div class="card-b">
+        <div class="row" style="margin-bottom:16px">
+          <label class="fld">Roll No<input id="stRoll" placeholder="21CS001" style="width:120px"></label>
+          <label class="fld">Student Name<input id="stName" placeholder="Full name" style="width:220px"></label>
+          <button class="btn primary" id="stAdd" style="align-self:flex-end">Add Student</button>
+        </div>
+        <div id="stBody"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section id="tab-reports" class="hide">
+    <div class="card">
+      <div class="card-h">
+        <h2>Attendance Report</h2>
+        <div class="row" style="margin-left:auto">
+          <label class="fld">Class<select id="rpClass"></select></label>
+          <label class="fld">From<input type="date" id="rpFrom"></label>
+          <label class="fld">To<input type="date" id="rpTo"></label>
+          <button class="btn" id="rpCsv" style="align-self:flex-end">Export CSV</button>
+        </div>
+      </div>
+      <div class="card-b" id="rpBody"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="tab-history" class="hide">
+    <div class="card">
+      <div class="card-h">
+        <h2>Session History</h2>
+        <label class="fld" style="margin-left:auto">Class<select id="hsClass"></select></label>
+      </div>
+      <div class="card-b" id="hsBody"></div>
+    </div>
+  </section>
+
+  <!-- CLASSES -->
+  <section id="tab-classes" class="hide">
+    <div class="card">
+      <div class="card-h"><h2>Classes &amp; Sections</h2></div>
+      <div class="card-b">
+        <div class="row" style="margin-bottom:16px">
+          <label class="fld">Class Name<input id="clName" placeholder="III B.Sc Computer Science - A" style="width:280px"></label>
+          <button class="btn primary" id="clAdd" style="align-self:flex-end">Add Class</button>
+        </div>
+        <div id="clBody"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s)};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var uid=function(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
+var today=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+var fmtDate=function(s){var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0]};
+
+/* ---------- state ---------- */
+var state={classes:[],attendance:{}};   // attendance["classId|YYYY-MM-DD"] = {studentId:"P"|"A"|"L"}
+var db=null, saveTimer=null, dirty=false;
+
+function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("on");
+  clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("on")},1800)}
+
+function status(m){$("#statusline").textContent=m}
+
+function save(){
+  dirty=true;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(function(){
+    if(!db){ try{localStorage.setItem("sams_state",JSON.stringify(state))}catch(e){} dirty=false; return; }
+    db.doc("app/state").set({data:JSON.stringify(state)}).then(function(){
+      dirty=false; status("All changes saved");
+    })["catch"](function(err){
+      status("Saved locally only");
+      try{localStorage.setItem("sams_state",JSON.stringify(state))}catch(e){}
+    });
+  },400);
+}
+
+function load(){
+  return new Promise(function(res){
+    var t=setTimeout(function(){res(null)},10500);
+    (window.claude&&window.claude.use?window.claude.use("db"):Promise.resolve(null))
+      .then(function(d){clearTimeout(t);res(d)})["catch"](function(){clearTimeout(t);res(null)});
+  }).then(function(d){
+    db=d;
+    if(!db){
+      var raw=null; try{raw=localStorage.getItem("sams_state")}catch(e){}
+      if(raw){try{state=JSON.parse(raw)}catch(e){}}
+      status("Local mode — data saved in this browser");
+      return;
+    }
+    return db.doc("app/state").get().then(function(snap){
+      if(snap&&snap.exists&&snap.data&&snap.data.data){
+        try{state=JSON.parse(snap.data.data)}catch(e){}
+      }
+      status("Connected — changes save automatically");
+    })["catch"](function(){status("Offline — changes save locally")});
+  });
+}
+
+/* ---------- helpers ---------- */
+function cls(id){for(var i=0;i<state.classes.length;i++)if(state.classes[i].id===id)return state.classes[i];return null}
+function sortStudents(a){return a.slice().sort(function(x,y){
+  return String(x.roll).localeCompare(String(y.roll),undefined,{numeric:true})})}
+function key(c,d){return c+"|"+d}
+
+function fillSelects(){
+  var ids=["#mkClass","#stClass","#rpClass","#hsClass"];
+  ids.forEach(function(sel){
+    var el=$(sel); var prev=el.value;
+    el.innerHTML=state.classes.length
+      ? state.classes.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join("")
+      : '<option value="">— no classes —</option>';
+    if(prev&&cls(prev))el.value=prev;
+  });
+}
+
+/* ---------- classes ---------- */
+function renderClasses(){
+  var b=$("#clBody");
+  if(!state.classes.length){b.innerHTML='<div class="empty">No classes yet. Add one above to get started.</div>';return}
+  b.innerHTML='<div class="tbl-wrap"><table><thead><tr><th>Class</th><th>Students</th><th>Sessions Recorded</th><th></th></tr></thead><tbody>'+
+    state.classes.map(function(c){
+      var sess=Object.keys(state.attendance).filter(function(k){return k.split("|")[0]===c.id}).length;
+      return '<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+c.students.length+
+        '</td><td>'+sess+'</td><td style="text-align:right"><button class="btn ghost" data-del="'+c.id+'">Delete</button></td></tr>';
+    }).join("")+'</tbody></table></div>';
+  b.querySelectorAll("[data-del]").forEach(function(btn){
+    btn.onclick=function(){
+      var c=cls(btn.dataset.del);
+      if(!confirm('Delete "'+c.name+'" along with its students and attendance records?'))return;
+      state.classes=state.classes.filter(function(x){return x.id!==c.id});
+      Object.keys(state.attendance).forEach(function(k){if(k.split("|")[0]===c.id)delete state.attendance[k]});
+      save();renderAll();toast("Class deleted");
+    };
+  });
+}
+
+/* ---------- students ---------- */
+function renderStudents(){
+  var c=cls($("#stClass").value), b=$("#stBody");
+  if(!c){b.innerHTML='<div class="empty">Create a class first.</div>';return}
+  if(!c.students.length){b.innerHTML='<div class="empty">No students in this class yet.</div>';return}
+  var list=sortStudents(c.students);
+  b.innerHTML='<div class="tbl-wrap"><table><thead><tr><th style="width:130px">Roll No</th><th>Name</th><th style="width:60px"></th></tr></thead><tbody>'+
+    list.map(function(s){
+      return '<tr><td class="roll">'+esc(s.roll)+'</td><td>'+esc(s.name)+
+        '</td><td style="text-align:right"><button class="btn ghost" data-rm="'+s.id+'">Remove</button></td></tr>';
+    }).join("")+'</tbody></table></div>';
+  b.querySelectorAll("[data-rm]").forEach(function(btn){
+    btn.onclick=function(){
+      c.students=c.students.filter(function(x){return x.id!==btn.dataset.rm});
+      Object.keys(state.attendance).forEach(function(k){delete state.attendance[k][btn.dataset.rm]});
+      save();renderAll();toast("Student removed");
+    };
+  });
+}
+
+/* ---------- mark attendance ---------- */
+function renderMark(){
+  var c=cls($("#mkClass").value), d=$("#mkDate").value, b=$("#mkBody");
+  if(!c){b.innerHTML='<div class="empty">Create a class and add students to begin marking attendance.</div>';return}
+  if(!c.students.length){b.innerHTML='<div class="empty">No students in <strong>'+esc(c.name)+'</strong>. Add them under the Students tab.</div>';return}
+  if(!d){b.innerHTML='<div class="empty">Pick a date.</div>';return}
+
+  var rec=state.attendance[key(c.id,d)]||{};
+  var list=sortStudents(c.students);
+  var p=0,a=0,l=0,un=0;
+  list.forEach(function(s){var v=rec[s.id];if(v==="P")p++;else if(v==="A")a++;else if(v==="L")l++;else un++});
+  var marked=list.length-un;
+  var pct=marked?Math.round(((p+l)/marked)*100):0;
+
+  b.innerHTML=
+   '<div class="row" style="margin-bottom:14px">'+
+     '<span class="tag">'+esc(c.name)+' &middot; '+fmtDate(d)+'</span>'+
+     '<span class="pill g">Present '+p+'</span><span class="pill r">Absent '+a+'</span>'+
+     '<span class="pill y">Late '+l+'</span>'+
+     (un?'<span class="tag">'+un+' unmarked</span>':'<span class="tag">Complete &middot; '+pct+'% attendance</span>')+
+     '<div style="margin-left:auto" class="row">'+
+       '<button class="btn" id="allP">Mark all present</button>'+
+       '<button class="btn" id="clr">Clear</button>'+
+     '</div>'+
+   '</div>'+
+   '<div class="tbl-wrap"><table><thead><tr><th style="width:120px">Roll No</th><th>Name</th>'+
+   '<th style="width:1%;white-space:nowrap">Status</th></tr></thead><tbody>'+
+   list.map(function(s){
+     var v=rec[s.id]||"";
+     return '<tr><td class="roll">'+esc(s.roll)+'</td><td>'+esc(s.name)+'</td><td>'+
+       '<div class="seg">'+
+         ["P","A","L"].map(function(k){
+           return '<button data-s="'+s.id+'" data-v="'+k+'"'+(v===k?' data-on="'+k+'"':'')+'>'+
+             ({P:"Present",A:"Absent",L:"Late"}[k])+'</button>';
+         }).join("")+
+       '</div></td></tr>';
+   }).join("")+'</tbody></table></div>';
+
+  b.querySelectorAll("[data-v]").forEach(function(btn){
+    btn.onclick=function(){
+      var k=key(c.id,d);
+      if(!state.attendance[k])state.attendance[k]={};
+      var sid=btn.dataset.s;
+      if(state.attendance[k][sid]===btn.dataset.v)delete state.attendance[k][sid];
+      else state.attendance[k][sid]=btn.dataset.v;
+      if(!Object.keys(state.attendance[k]).length)delete state.attendance[k];
+      save();renderMark();
+    };
+  });
+  $("#allP").onclick=function(){
+    var k=key(c.id,d);state.attendance[k]=state.attendance[k]||{};
+    list.forEach(function(s){if(!state.attendance[k][s.id])state.attendance[k][s.id]="P"});
+    save();renderMark();toast("All unmarked students set present");
+  };
+  $("#clr").onclick=function(){
+    delete state.attendance[key(c.id,d)];save();renderMark();toast("Register cleared");
+  };
+}
+
+/* ---------- reports ---------- */
+function reportRows(c,from,to){
+  var keys=Object.keys(state.attendance).filter(function(k){
+    var p=k.split("|");
+    if(p[0]!==c.id)return false;
+    if(from&&p[1]<from)return false;
+    if(to&&p[1]>to)return false;
+    return true;
+  });
+  return {keys:keys,rows:sortStudents(c.students).map(function(s){
+    var p=0,a=0,l=0;
+    keys.forEach(function(k){var v=state.attendance[k][s.id];
+      if(v==="P")p++;else if(v==="A")a++;else if(v==="L")l++});
+    var held=p+a+l;
+    return {s:s,p:p,a:a,l:l,held:held,pct:held?Math.round(((p+l)/held)*1000)/10:0};
+  })};
+}
+
+function renderReport(){
+  var c=cls($("#rpClass").value), b=$("#rpBody");
+  if(!c){b.innerHTML='<div class="empty">Create a class first.</div>';return}
+  var r=reportRows(c,$("#rpFrom").value,$("#rpTo").value);
+  if(!r.keys.length){b.innerHTML='<div class="empty">No attendance recorded for this class in the selected range.</div>';return}
+  var avg=r.rows.length?Math.round(r.rows.reduce(function(t,x){return t+x.pct},0)/r.rows.length*10)/10:0;
+  var short=r.rows.filter(function(x){return x.pct<75}).length;
+
+  b.innerHTML='<div class="stats" style="margin-bottom:18px">'+
+    '<div class="stat"><div class="n">'+r.keys.length+'</div><div class="l">Sessions Held</div></div>'+
+    '<div class="stat"><div class="n">'+c.students.length+'</div><div class="l">Students</div></div>'+
+    '<div class="stat"><div class="n">'+avg+'%</div><div class="l">Class Average</div></div>'+
+    '<div class="stat"><div class="n" style="color:var(--absent)">'+short+'</div><div class="l">Below 75%</div></div>'+
+    '</div>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>Roll No</th><th>Name</th><th>Present</th><th>Late</th>'+
+    '<th>Absent</th><th>Held</th><th style="width:190px">Attendance %</th></tr></thead><tbody>'+
+    r.rows.map(function(x){
+      return '<tr><td class="roll">'+esc(x.s.roll)+'</td><td>'+esc(x.s.name)+'</td>'+
+        '<td>'+x.p+'</td><td>'+x.l+'</td><td>'+x.a+'</td><td>'+x.held+'</td>'+
+        '<td><div class="row" style="gap:9px;flex-wrap:nowrap">'+
+          '<div class="bar" style="flex:1"><i style="width:'+x.pct+'%;background:'+
+            (x.pct<75?"var(--absent)":"var(--present)")+'"></i></div>'+
+          '<span class="pill '+(x.pct<75?"r":"g")+'">'+x.pct+'%</span>'+
+        '</div></td></tr>';
+    }).join("")+'</tbody></table></div>'+
+    '<p style="font-size:12px;color:var(--muted);margin:14px 0 0">Late arrivals are counted as present. '+
+    'Students below the 75% threshold are highlighted in red.</p>';
+}
+
+function csv(){
+  var c=cls($("#rpClass").value); if(!c)return;
+  var r=reportRows(c,$("#rpFrom").value,$("#rpTo").value);
+  var q=function(v){return '"'+String(v).replace(/"/g,'""')+'"'};
+  var lines=[["Roll No","Name","Present","Late","Absent","Sessions Held","Attendance %"].map(q).join(",")];
+  r.rows.forEach(function(x){lines.push([x.s.roll,x.s.name,x.p,x.l,x.a,x.held,x.pct].map(q).join(","))});
+  var text="Class,"+q(c.name)+"\nSessions,"+r.keys.length+"\n\n"+lines.join("\n");
+  var name=c.name.replace(/[^a-z0-9]+/gi,"_")+"_attendance.csv";
+
+  (window.claude&&window.claude.use?window.claude.use("downloads"):Promise.resolve(null))
+    .then(function(dl){
+      if(dl&&dl.save)return dl.save({filename:name,data:text}).then(function(){toast("CSV exported")});
+      var blob=new Blob([text],{type:"text/csv"});
+      var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();
+      setTimeout(function(){URL.revokeObjectURL(a.href)},2000);toast("CSV exported");
+    })["catch"](function(){toast("Export unavailable here")});
+}
+
+/* ---------- history ---------- */
+function renderHistory(){
+  var c=cls($("#hsClass").value), b=$("#hsBody");
+  if(!c){b.innerHTML='<div class="empty">Create a class first.</div>';return}
+  var keys=Object.keys(state.attendance).filter(function(k){return k.split("|")[0]===c.id})
+    .sort(function(x,y){return y.split("|")[1].localeCompare(x.split("|")[1])});
+  if(!keys.length){b.innerHTML='<div class="empty">No sessions recorded for this class yet.</div>';return}
+  b.innerHTML='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Present</th><th>Late</th>'+
+    '<th>Absent</th><th>Attendance</th><th></th></tr></thead><tbody>'+
+    keys.map(function(k){
+      var rec=state.attendance[k],p=0,a=0,l=0;
+      Object.keys(rec).forEach(function(id){var v=rec[id];
+        if(v==="P")p++;else if(v==="A")a++;else if(v==="L")l++});
+      var held=p+a+l, pct=held?Math.round((p+l)/held*100):0;
+      var d=k.split("|")[1];
+      return '<tr><td><strong>'+fmtDate(d)+'</strong></td><td>'+p+'</td><td>'+l+'</td><td>'+a+'</td>'+
+        '<td><span class="pill '+(pct<75?"r":"g")+'">'+pct+'%</span></td>'+
+        '<td style="text-align:right"><button class="btn" data-open="'+d+'">Open</button></td></tr>';
+    }).join("")+'</tbody></table></div>';
+  b.querySelectorAll("[data-open]").forEach(function(btn){
+    btn.onclick=function(){
+      $("#mkClass").value=c.id;$("#mkDate").value=btn.dataset.open;
+      showTab("mark");renderMark();
+    };
+  });
+}
+
+/* ---------- tabs ---------- */
+function showTab(name){
+  document.querySelectorAll("nav button").forEach(function(b){
+    b.setAttribute("aria-selected",String(b.dataset.tab===name))});
+  ["mark","students","reports","history","classes"].forEach(function(t){
+    $("#tab-"+t).classList.toggle("hide",t!==name)});
+  if(name==="mark")renderMark();
+  if(name==="students")renderStudents();
+  if(name==="reports")renderReport();
+  if(name==="history")renderHistory();
+  if(name==="classes")renderClasses();
+}
+
+function renderAll(){fillSelects();renderClasses();renderStudents();renderMark();renderReport();renderHistory()}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll("nav button").forEach(function(b){
+  b.onclick=function(){showTab(b.dataset.tab)}});
+
+$("#clAdd").onclick=function(){
+  var n=$("#clName").value.trim();
+  if(!n){toast("Enter a class name");return}
+  state.classes.push({id:uid(),name:n,students:[]});
+  $("#clName").value="";save();renderAll();toast("Class added");
+};
+$("#clName").onkeydown=function(e){if(e.key==="Enter")$("#clAdd").click()};
+
+$("#stAdd").onclick=function(){
+  var c=cls($("#stClass").value);
+  if(!c){toast("Create a class first");return}
+  var roll=$("#stRoll").value.trim(), name=$("#stName").value.trim();
+  if(!roll||!name){toast("Roll number and name are both required");return}
+  if(c.students.some(function(s){return s.roll.toLowerCase()===roll.toLowerCase()})){
+    toast("That roll number already exists");return}
+  c.students.push({id:uid(),roll:roll,name:name});
+  $("#stRoll").value="";$("#stName").value="";$("#stRoll").focus();
+  save();renderAll();toast("Student added");
+};
+$("#stName").onkeydown=function(e){if(e.key==="Enter")$("#stAdd").click()};
+$("#stRoll").onkeydown=function(e){if(e.key==="Enter")$("#stName").focus()};
+
+$("#stClass").onchange=renderStudents;
+$("#mkClass").onchange=renderMark;
+$("#mkDate").onchange=renderMark;
+$("#hsClass").onchange=renderHistory;
+["#rpClass","#rpFrom","#rpTo"].forEach(function(s){$(s).onchange=renderReport});
+$("#rpCsv").onclick=csv;
+
+$("#themeBtn").onclick=function(){
+  var cur=document.documentElement.getAttribute("data-theme");
+  var dark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.setAttribute("data-theme",dark?"light":"dark");
+};
+
+window.addEventListener("beforeunload",function(e){
+  if(dirty){e.preventDefault();e.returnValue=""}
+});
+
+/* ---------- boot ---------- */
+$("#mkDate").value=today();
+renderAll();
+load().then(function(){
+  if(!state.classes.length){
+    state.classes=[{id:uid(),name:"Sample Class — III B.Sc CS (A)",students:[
+      {id:uid(),roll:"21CS001",name:"Arun Kumar"},
+      {id:uid(),roll:"21CS002",name:"Divya Ramesh"},
+      {id:uid(),roll:"21CS003",name:"Karthik S"},
+      {id:uid(),roll:"21CS004",name:"Meena Lakshmi"},
+      {id:uid(),roll:"21CS005",name:"Naveen Raj"}
+    ]}];
+  }
+  renderAll();showTab("mark");
+});
+})();
+</script>
+</body>
+</html>
